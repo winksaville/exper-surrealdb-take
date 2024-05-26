@@ -24,9 +24,22 @@ async fn main() -> surrealdb::Result<()> {
     // Select a specific namespace / database
     db.use_ns("test").use_db("test").await?;
 
+    println!(r#"Define the persons table, not strictly necessary as when using `db.create("perons")` if it does not exist it will be created"#);
+    let surql = r#"DEFINE DATABASE persons;"#;
+    let response = db.query(surql).await?;
+    dbg!(response);
+    //match response.take(0) {
+    //    Ok(result) => dbg!(result),
+    //    Err(e) => {
+    //        println!("Error: {e}");
+    //        return Err(e);
+    //    }
+    //}
+    //println!("DEFINE DATABASE result: {result:?}");
+
     // Create Tobie Hitchcock
     let tobie: Vec<Record> = db
-        .create("person")
+        .create("persons")
         .content(Person {
             name: "Tobie Hitchcock".to_string(),
             age: 30,
@@ -37,14 +50,15 @@ async fn main() -> surrealdb::Result<()> {
 
     // Create Tony Tiger
     let tony: Vec<Record> = db
-        .create("person")
+        .create("persons")
         .content(Person {
             name: "Tony Tiger".to_string(),
             age: 50,
             is_active: false,
         })
         .await?;
-    println!("tony: {:?}", tony);
+    // Don't use dbg! as it will consume var tony
+    println!("tony: {tony:?}");
 
     // Get the Tony Tiger table and id
     let tony_tb = &tony[0].id.tb;
@@ -57,23 +71,35 @@ async fn main() -> surrealdb::Result<()> {
     dbg!(tony_person_by_id);
 
     println!("Query all people specifing all the fields individually");
-    let surql = "SELECT name, age, is_active FROM person";
-    let mut result = db.query(surql).await?;
-    let people_take0: Vec<Person> = result.take(0)?;
+    let surql = "SELECT name, age, is_active FROM persons";
+    let mut response = db.query(surql).await?;
+    let people_take0: Vec<Person> = response.take(0)?;
     assert!(people_take0.len() == 2, "Expected 2 elements");
     dbg!(people_take0);
 
     println!("Query all people using the wildcard");
-    let surql = "SELECT * FROM person";
-    let mut result = db.query(surql).await?;
-    let people_take0: Vec<Person> = result.take(0)?;
+    let surql = "SELECT * FROM persons";
+    let mut response = db.query(surql).await?;
+    let people_take0: Vec<Person> = response.take(0)?;
     assert!(people_take0.len() == 2, "Expected 2 elements");
     dbg!(people_take0);
 
+    println!("Query all people using the wildcard and with stats");
+    let mut response = db.query(surql).with_stats().await?;
+    if let Some((stats, result)) = response.take(0) {
+        let execution_time = stats.execution_time;
+        println!("Execution time = {execution_time:?}");
+        let people_take0: Vec<Person> = result?;
+        assert!(people_take0.len() == 2, "Expected 2 elements");
+        dbg!(people_take0);
+    } else {
+        println!("No result");
+    }
+
     println!("Query Tony Tiger using the name");
-    let surql = r#"SELECT * FROM person WHERE name = "Tony Tiger""#;
-    let mut result = db .query(surql).await?;
-    let tony_person: Vec<Person> = result.take(0)?;
+    let surql = r#"SELECT * FROM persons WHERE name = "Tony Tiger""#;
+    let mut response = db .query(surql).await?;
+    let tony_person: Vec<Person> = response.take(0)?;
     assert!(tony_person.len() == 1, "Expected 1 elements");
     dbg!(tony_person);
 
