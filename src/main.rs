@@ -44,15 +44,38 @@ async fn main() -> surrealdb::Result<()> {
             is_active: false,
         })
         .await?;
-    dbg!(tony);
+    println!("tony: {:?}", tony);
 
-    // Select all people, it seems you must specify the fields individually
-    // in the select statement to serialize into a struct.
-    let sql = "SELECT name, age, is_active FROM person";
-    let mut result = db.query(sql).await?;
+    // Get the Tony Tiger table and id
+    let tony_tb = &tony[0].id.tb;
+    let tony_id = tony[0].id.id.to_string();
+    println!("tony_tb: {tony_tb}, tony.id: {tony_id}");
+
+    // Select Tony Tiger using the id
+    let tony_person_by_id: Option<Person> = db.select((tony_tb, tony_id)).await?;
+    assert!(tony_person_by_id.is_some(), "Expected Some");
+    dbg!(tony_person_by_id);
+
+    // Query all people specifing all the fields individually
+    let surql = "SELECT name, age, is_active FROM person";
+    let mut result = db.query(surql).await?;
     let people_take0: Vec<Person> = result.take(0)?;
     assert!(people_take0.len() == 2, "Expected 2 elements");
     dbg!(people_take0);
+
+    // Query all people using the wildcard
+    let surql = "SELECT * FROM person";
+    let mut result = db.query(surql).await?;
+    let people_take0: Vec<Person> = result.take(0)?;
+    assert!(people_take0.len() == 2, "Expected 2 elements");
+    dbg!(people_take0);
+
+    // Query Tony Tiger using his the name
+    let surql = "SELECT * FROM person WHERE name = 'Tony Tiger'";
+    let mut result = db .query(surql).await?;
+    let tony_person: Vec<Person> = result.take(0)?;
+    assert!(tony_person.len() == 1, "Expected 1 elements");
+    dbg!(tony_person);
 
     Ok(())
 }
