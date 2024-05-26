@@ -4,8 +4,9 @@ Experiment with SurrealDB Response.take returned by a db.query call.
 
 This is based on [this post](https://github.com/surrealdb/surrealdb/issues/2848#issuecomment-1765240638)
 in issue [Feature: Add Implementations for QueryResult #2848](https://github.com/surrealdb/surrealdb/issues/2848).
-It shows that you can deserialize into a Vec of structs but you have name the
-individual fields of the struct in the SurQL SELECT statement.
+It shows that you can deserialize into a Vec of structs but you have to name the
+individual fields of the struct in the SurQL SELECT statement. Actually you can use '*'
+instead of the file names.
 
 The other thing I learned is that `take` allows you to
 chain together [multiple query calls from a "db"](https://github.com/surrealdb/surrealdb/blob/2219388802dd9d769e17c15f6f3d94bb2cd64676/lib/src/api/method/query.rs#L280-L346)
