@@ -1,4 +1,4 @@
-# exper-take
+# exper-surrealdb-take
 
 Experiment with SurrealDB Response.take returned by a db.query call.
 
