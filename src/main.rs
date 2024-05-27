@@ -1,3 +1,5 @@
+use std::env::args;
+
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::local::Mem;
 use surrealdb::sql::Thing;
@@ -24,25 +26,34 @@ async fn main() -> surrealdb::Result<()> {
     // Select a specific namespace / database
     db.use_ns("test").use_db("test").await?;
 
-    // Define the persons table with "IF NOT EXISTS" which requires feature "sql2"
-    let surql = r#"DEFINE DATABASE IF NOT EXISTS persons;"#;
-    println!(r#"Define the persons table the easy way"#);
-    let response = db.query(surql).await?;
-    println!("Successfully created DB");
-    dbg!(&response);
+    // if $1 is true, define the persons table
+    let def_db = if let Some(defdb) = args().nth(1) {
+        defdb == "true" || defdb == "1" || defdb == "t"
+    } else {
+        false
+    };
 
-    // Define the persons table again, surprisingly IF NOT EXISTS is not needed
-    // to ignore the error.
-    let surql = r#"DEFINE DATABASE persons;"#;
-    println!(r#"Define the persons table with error handling"#);
-    match db.query(surql).await {
-        Ok(response) => {
-            println!("Successfully created DB");
-            dbg!(&response);
-        }
-        Err(e) => {
-            println!("Error: {e}");
-            return Err(e);
+    if def_db {
+        // Define the persons table with "IF NOT EXISTS" which requires feature "sql2"
+        let surql = r#"DEFINE DATABASE IF NOT EXISTS persons;"#;
+        println!(r#"Define the persons table the easy way"#);
+        let response = db.query(surql).await?;
+        println!("Successfully created DB");
+        dbg!(&response);
+
+        // Define the persons table again, surprisingly IF NOT EXISTS is not needed
+        // to ignore the error.
+        let surql = r#"DEFINE DATABASE persons;"#;
+        println!(r#"Define the persons table with error handling"#);
+        match db.query(surql).await {
+            Ok(response) => {
+                println!("Successfully created DB");
+                dbg!(&response);
+            }
+            Err(e) => {
+                println!("Error: {e}");
+                return Err(e);
+            }
         }
     }
 
