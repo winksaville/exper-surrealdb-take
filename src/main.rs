@@ -26,22 +26,23 @@ async fn main() -> surrealdb::Result<()> {
 
     // Define the persons table with "IF NOT EXISTS" which requires feature "sql2"
     let surql = r#"DEFINE DATABASE IF NOT EXISTS persons;"#;
-    if true {
-        println!(r#"Define the persons table the easy way"#);
-        let response = db.query(surql).await?;
-        println!("Successfully created DB");
-        dbg!(&response);
-    } else {
-        println!(r#"Define the persons table with error handling"#);
-        match db.query(surql).await {
-            Ok(response) => {
-                println!("Successfully created DB");
-                dbg!(&response);
-            }
-            Err(e) => {
-                println!("Error: {e}");
-                return Err(e);
-            }
+    println!(r#"Define the persons table the easy way"#);
+    let response = db.query(surql).await?;
+    println!("Successfully created DB");
+    dbg!(&response);
+
+    // Define the persons table again, surprisingly IF NOT EXISTS is not needed
+    // to ignore the error.
+    let surql = r#"DEFINE DATABASE persons;"#;
+    println!(r#"Define the persons table with error handling"#);
+    match db.query(surql).await {
+        Ok(response) => {
+            println!("Successfully created DB");
+            dbg!(&response);
+        }
+        Err(e) => {
+            println!("Error: {e}");
+            return Err(e);
         }
     }
 
