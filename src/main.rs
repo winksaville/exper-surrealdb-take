@@ -84,12 +84,25 @@ async fn main() -> surrealdb::Result<()> {
     assert!(people_take0.len() == 2, "Expected 2 elements");
     dbg!(people_take0);
 
-    println!("Query all people using the wildcard and with stats");
-    let mut response = db.query(surql).with_stats().await?;
+    println!("Query all people using the wildcard and with stats and complete error handling!");
+    let mut response = match db.query(surql).with_stats().await {
+        Ok(response) => response,
+        Err(e) => {
+            println!("Error: {e}");
+            return Err(e);
+        }
+    };
+
     if let Some((stats, result)) = response.take(0) {
         let execution_time = stats.execution_time;
         println!("Execution time = {execution_time:?}");
-        let people_take0: Vec<Person> = result?;
+        let people_take0: Vec<Person> = match result {
+            Ok(result) => result,
+            Err(e) => {
+                println!("Error: {e}");
+                return Err(e);
+            }
+        };
         assert!(people_take0.len() == 2, "Expected 2 elements");
         dbg!(people_take0);
     } else {
