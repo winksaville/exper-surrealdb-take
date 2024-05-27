@@ -24,9 +24,8 @@ async fn main() -> surrealdb::Result<()> {
     // Select a specific namespace / database
     db.use_ns("test").use_db("test").await?;
 
-    // Interesting enough if the db already exists there is no error
-    // but adding IF NOT EXISTS causes an error!
-    let surql = r#"DEFINE DATABASE persons;"#;
+    // Define the persons table with "IF NOT EXISTS" which requires feature "sql2"
+    let surql = r#"DEFINE DATABASE IF NOT EXISTS persons;"#;
     if true {
         println!(r#"Define the persons table the easy way"#);
         let response = db.query(surql).await?;
