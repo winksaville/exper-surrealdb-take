@@ -57,7 +57,7 @@ async fn main() -> surrealdb::Result<()> {
         }
     }
 
-    // Create Tobie Hitchcock
+    println!("Create person Tobie Hitchcock and add to persons table");
     let tobie: Vec<Record> = db
         .create("persons")
         .content(Person {
@@ -68,7 +68,7 @@ async fn main() -> surrealdb::Result<()> {
         .await?;
     dbg!(&tobie);
 
-    // Create Tony Tiger
+    println!("Create person Tony Tiger and add to persons table");
     let tony: Vec<Record> = db
         .create("persons")
         .content(Person {
@@ -77,7 +77,6 @@ async fn main() -> surrealdb::Result<()> {
             is_active: false,
         })
         .await?;
-    // Don't use dbg! as it will consume var tony
     dbg!(&tony);
 
     println!("Select Tony Tiger using the id");
@@ -89,7 +88,7 @@ async fn main() -> surrealdb::Result<()> {
     assert!(tony_person_by_id.is_some(), "Expected Some");
     dbg!(&tony_person_by_id);
 
-    println!("Query Tony Tiger using the name");
+    println!(r#"Select all the fields, "*", where the name field is Tony Tiger"#);
     let surql = r#"SELECT * FROM persons WHERE name = "Tony Tiger""#;
     let mut response = db.query(surql).await?;
     let tony_person: Vec<Person> = response.take(0)?;
@@ -103,14 +102,15 @@ async fn main() -> surrealdb::Result<()> {
     assert!(people_take0.len() == 2, "Expected 2 elements");
     dbg!(&people_take0);
 
-    println!("Query all people using the wildcard");
+    println!(r#"Select using query() all fields, "*", for all people"#);
     let surql = "SELECT * FROM persons";
     let mut response = db.query(surql).await?;
     let people_take0: Vec<Person> = response.take(0)?;
     assert!(people_take0.len() == 2, "Expected 2 elements");
     dbg!(&people_take0);
 
-    println!("Query all people using the wildcard and with stats and complete error handling!");
+    println!(r#"Select all fields, "*", for all people with stats and complete error handling"#);
+    let surql = "SELECT * FROM persons";
     let mut response = match db.query(surql).with_stats().await {
         Ok(response) => response,
         Err(e) => {
@@ -118,7 +118,6 @@ async fn main() -> surrealdb::Result<()> {
             return Err(e);
         }
     };
-
     if let Some((stats, result)) = response.take(0) {
         let execution_time = stats.execution_time;
         println!("Execution time = {execution_time:?}");
